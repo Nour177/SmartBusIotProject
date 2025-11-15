@@ -242,6 +242,8 @@ Chaque capteur a son propre module dans `sensors/` avec :
 - Assurez-vous d'avoir les permissions GPIO (utilisateur dans le groupe `gpio`)
 - Le GPS peut prendre quelques minutes pour obtenir un fix satellite
 - Certains capteurs nécessitent un temps de stabilisation après l'alimentation
+- **DHT22** : Utilise la bibliothèque moderne `adafruit-circuitpython-dht` (compatible avec Raspberry Pi OS Bookworm+)
+  - Si vous avez des problèmes d'installation, consultez `FIX_DHT.md`
 
 ## 🔒 Sécurité
 

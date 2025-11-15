@@ -4,8 +4,9 @@
 pyserial>=3.5
 pynmea2>=1.19.0
 
-# DHT22 (Température/Humidité)
-Adafruit-Python-DHT>=1.4.0
+# DHT22 (Température/Humidité) - Bibliothèque moderne
+adafruit-circuitpython-dht>=2.4.4
+adafruit-blinka>=8.0.0
 
 # MPU9250 (IMU)
 mpu9250-jmdev>=1.0.0
