@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from sensors import GPSNeo6M, DHT22, MPU9250, PIR, Ultrasonic, LCD
+from sensors import GPSNeo6M, DHT22, MPU9250, Ultrasonic, LCD
 from utils import DataLogger, ConfigLoader
 
 # Configuration du logging
@@ -46,7 +46,7 @@ class SmartBus:
         
         if self.config.get('sensors.gps.enabled', True):
             self.sensors['gps'] = GPSNeo6M(
-                port=self.config.get('sensors.gps.port', '/dev/ttyUSB0'),
+                port=self.config.get('sensors.gps.port', '/dev/ttyAMA0'),
                 baudrate=self.config.get('sensors.gps.baudrate', 9600)
             )
             self.sensors['gps'].connect()
@@ -58,11 +58,6 @@ class SmartBus:
         
         if self.config.get('sensors.mpu9250.enabled', True):
             self.sensors['mpu9250'] = MPU9250()
-        
-        if self.config.get('sensors.pir.enabled', True):
-            self.sensors['pir'] = PIR(
-                pin=self.config.get('sensors.pir.pin', 18)
-            )
         
         # Capteur ultrason pour la porte d'entrée
         if self.config.get('sensors.ultrasonic_entry.enabled', True):
@@ -131,12 +126,6 @@ class SmartBus:
             mpu_data = self.sensors['mpu9250'].read_data()
             if mpu_data:
                 data['sensors']['mpu9250'] = mpu_data
-        
-        # Collecte des données PIR
-        if 'pir' in self.sensors:
-            pir_data = self.sensors['pir'].read_data()
-            if pir_data:
-                data['sensors']['pir'] = pir_data
         
         # Collecte des données Ultrasonic - Porte d'entrée
         entry_distance = None
@@ -251,9 +240,6 @@ class SmartBus:
         
         if 'gps' in self.sensors:
             self.sensors['gps'].disconnect()
-        
-        if 'pir' in self.sensors:
-            self.sensors['pir'].cleanup()
         
         if 'ultrasonic_entry' in self.sensors:
             self.sensors['ultrasonic_entry'].cleanup()

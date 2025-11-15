@@ -13,12 +13,12 @@ logger = logging.getLogger(__name__)
 class GPSNeo6M:
     """Classe pour gérer le module GPS Neo-6M"""
     
-    def __init__(self, port: str = '/dev/ttyUSB0', baudrate: int = 9600):
+    def __init__(self, port: str = '/dev/ttyAMA0', baudrate: int = 9600):
         """
         Initialise le module GPS
         
         Args:
-            port: Port série (par défaut /dev/ttyUSB0)
+            port: Port série UART GPIO (par défaut /dev/ttyAMA0 pour Raspberry Pi)
             baudrate: Vitesse de communication (par défaut 9600)
         """
         self.port = port
@@ -95,6 +95,7 @@ class GPSNeo6M:
     def get_position(self) -> Optional[Dict]:
         """Retourne la position actuelle"""
         return self.read_data()
+
 
 
 

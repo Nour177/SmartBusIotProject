@@ -72,15 +72,20 @@ Ce document décrit le schéma de connexion complet pour connecter tous les capt
 | SDA            | GPIO 2 (Pin 3)         | I2C Data (SDA) |
 | SCL            | GPIO 3 (Pin 5)         | I2C Clock (SCL) |
 
-### 6. Module GPS Neo-6M
-| Broche GPS Neo-6M | Connexion | Description |
-|-------------------|-----------|-------------|
-| VCC               | 5V (Pin 2) ou USB | Alimentation |
-| GND               | GND (Pin 6) | Masse |
-| TX                | USB (via adaptateur USB-Série) | Transmission série |
-| RX                | USB (via adaptateur USB-Série) | Réception série |
+### 6. Module GPS Neo-6M (UART GPIO)
+| Broche GPS Neo-6M | Connexion Raspberry Pi | Description |
+|-------------------|------------------------|-------------|
+| VCC               | 5V (Pin 2)             | Alimentation |
+| GND               | GND (Pin 6)            | Masse |
+| TX                | GPIO 15 (Pin 10) - RXD | Réception série (Raspberry Pi reçoit) |
+| RX                | GPIO 14 (Pin 8) - TXD  | Transmission série (Raspberry Pi envoie) |
 
-**Note** : Le GPS Neo-6M se connecte généralement via un adaptateur USB-Série (ex: CP2102, CH340) sur le port USB du Raspberry Pi (`/dev/ttyUSB0`).
+**Note** : 
+- Le GPS Neo-6M se connecte via UART GPIO (port série `/dev/ttyAMA0`)
+- **TX du GPS → RX du Raspberry Pi** (GPIO 15)
+- **RX du GPS → TX du Raspberry Pi** (GPIO 14)
+- L'UART doit être activé dans `raspi-config` (Interface Options → Serial Port)
+- Le port série par défaut est `/dev/ttyAMA0` sur Raspberry Pi 4
 
 ## Schéma de connexion complet (ASCII)
 
@@ -98,17 +103,19 @@ Ce document décrit le schéma de connexion complet pour connecter tous les capt
     │                      │                         │
     │  Pin 6  (GND) ───────┼─────────────────────────┤
     │                      │                         │
-    │  Pin 7  (GPIO 4) ─────┼─────────────────────────┤
-    │                      │                         │
-    │  Pin 16 (GPIO 23) ────┼─────────────────────────┤
-    │                      │                         │
-    │  Pin 18 (GPIO 24) ────┼─────────────────────────┤
-    │                      │                         │
-    │  Pin 22 (GPIO 25) ────┼─────────────────────────┤
-    │                      │                         │
-    │  Pin 37 (GPIO 26) ────┼─────────────────────────┤
-    │                                                 │
-    │  USB Port ─────────────────────────────────────┤
+   │  Pin 7  (GPIO 4) ─────┼─────────────────────────┤
+   │                      │                         │
+   │  Pin 8  (GPIO 14/TXD)┼─────────────────────────┤
+   │                      │                         │
+   │  Pin 10 (GPIO 15/RXD)┼─────────────────────────┤
+   │                      │                         │
+   │  Pin 16 (GPIO 23) ────┼─────────────────────────┤
+   │                      │                         │
+   │  Pin 18 (GPIO 24) ────┼─────────────────────────┤
+   │                      │                         │
+   │  Pin 22 (GPIO 25) ────┼─────────────────────────┤
+   │                      │                         │
+   │  Pin 37 (GPIO 26) ────┼─────────────────────────┤
     └─────────────────────────────────────────────────┘
                           │
         ┌─────────────────┼─────────────────┬──────────────┐
@@ -116,7 +123,7 @@ Ce document décrit le schéma de connexion complet pour connecter tous les capt
    ┌────▼────┐      ┌─────▼─────┐    ┌─────▼─────┐  ┌─────▼─────┐
    │ HC-SR04 │      │   DHT22   │    │  MPU9250  │  │ GPS Neo-6M│
    │   #1    │      │           │    │           │  │           │
-   │         │      │ VCC ──────┼────┼─── VCC    │  │ VCC ──────┼─── USB
+   │         │      │ VCC ──────┼────┼─── VCC    │  │ VCC ──────┼─── 5V
    │ VCC ────┼──────┼─── VCC    │    │           │  │           │
    │ GND ────┼──────┼─── GND    │    │ GND ──────┼──┼─── GND    │
    │ Trig ───┼── GPIO 23        │    │           │  │           │
@@ -124,10 +131,10 @@ Ce document décrit le schéma de connexion complet pour connecter tous les capt
    │         │      │           │    │           │  │           │
    └─────────┘      └───────────┘    │ SDA ──────┼──┼─── GPIO 2 │
                                       │ SCL ──────┼──┼─── GPIO 3 │
-   ┌────▼────┐                        └───────────┘  └───────────┘
-   │ HC-SR04 │
-   │   #2    │
-   │         │
+   ┌────▼────┐                        └───────────┘  │           │
+   │ HC-SR04 │                                        │ TX ───────┼─── GPIO 14
+   │   #2    │                                        │ RX ───────┼─── GPIO 15
+   │         │                                        └───────────┘
    │ VCC ────┼─── (partagé avec HC-SR04 #1)
    │ GND ────┼─── (partagé)
    │ Trig ───┼─── GPIO 25
@@ -140,11 +147,11 @@ Ce document décrit le schéma de connexion complet pour connecter tous les capt
 ```
 Raspberry Pi GPIO Header (40 pins)
 
-    3.3V  [1]  [2]  5V        ← DHT22 VCC, MPU9250 VCC, HC-SR04 VCC, GPS VCC
-   GPIO2  [3]  [4]  5V        ← MPU9250 SDA (I2C)
-   GPIO3  [5]  [6]  GND       ← MPU9250 SCL (I2C), Masse commune
-   GPIO4  [7]  [8]  GPIO14    ← DHT22 DATA
-     GND  [9]  [10] GPIO15
+    3.3V  [1]  [2]  5V        ← DHT22 VCC, MPU9250 VCC, HC-SR04 VCC, GPS VCC, LCD VCC
+   GPIO2  [3]  [4]  5V        ← MPU9250 SDA (I2C), LCD SDA
+   GPIO3  [5]  [6]  GND       ← MPU9250 SCL (I2C), LCD SCL, Masse commune
+   GPIO4  [7]  [8]  GPIO14    ← DHT22 DATA, GPS RX (TXD)
+     GND  [9]  [10] GPIO15    ← GPS TX (RXD)
   GPIO17 [11]  [12] GPIO18
   GPIO27 [13]  [14] GND
   GPIO22 [15]  [16] GPIO23    ← HC-SR04 #1 Trig
@@ -178,7 +185,7 @@ Raspberry Pi GPIO Header (40 pins)
 
 ### Répartition de l'alimentation
 - **3.3V (Pin 1)** : DHT22, MPU9250
-- **5V (Pin 2)** : HC-SR04 #1, HC-SR04 #2, GPS Neo-6M (si connecté directement)
+- **5V (Pin 2)** : HC-SR04 #1, HC-SR04 #2, GPS Neo-6M, LCD
 - **GND (Pin 6)** : Masse commune pour tous les capteurs
 
 ### Consommation estimée
@@ -186,7 +193,8 @@ Raspberry Pi GPIO Header (40 pins)
 - DHT22 : ~1-2mA
 - MPU9250 : ~3-4mA
 - GPS Neo-6M : ~20-30mA
-- **Total estimé** : ~55-65mA (bien en dessous de la limite du Raspberry Pi)
+- LCD I2C : ~5-10mA
+- **Total estimé** : ~60-75mA (bien en dessous de la limite du Raspberry Pi)
 
 ## Protection et résistances
 
@@ -217,19 +225,52 @@ sudo i2cdetect -y 1
 
 L'adresse I2C du MPU9250 est généralement `0x68` ou `0x69`.
 
-## Configuration GPS
+## Configuration GPS (UART GPIO)
 
-Le GPS Neo-6M se connecte via USB. Vérifiez le port série :
+Le GPS Neo-6M se connecte via UART GPIO. Configuration nécessaire :
+
+### 1. Activer l'UART
 
 ```bash
-ls -l /dev/ttyUSB*
-# ou
-ls -l /dev/ttyACM*
+sudo raspi-config
+# Interface Options → Serial Port → Enable
 ```
 
-Configurez les permissions si nécessaire :
+Ou en ligne de commande :
+```bash
+sudo raspi-config nonint do_serial 0
+```
+
+### 2. Désactiver le shell sur le port série (si nécessaire)
+
+Sur Raspberry Pi OS récent, le port série peut être utilisé par le shell. Pour utiliser l'UART pour le GPS :
+
+```bash
+sudo raspi-config
+# Interface Options → Serial Port → No (pour le shell login)
+```
+
+### 3. Vérifier le port série
+
+```bash
+ls -l /dev/ttyAMA0
+```
+
+Le port par défaut est `/dev/ttyAMA0` sur Raspberry Pi 4.
+
+### 4. Permissions
+
 ```bash
 sudo usermod -a -G dialout $USER
+sudo reboot
+```
+
+### 5. Test de connexion
+
+```bash
+# Tester la réception de données GPS
+sudo cat /dev/ttyAMA0
+# Vous devriez voir des lignes NMEA commençant par $GPRMC, $GPGGA, etc.
 ```
 
 ## Configuration dans config.json
@@ -240,7 +281,7 @@ Exemple de configuration complète :
 {
   "sensors": {
     "gps": {
-      "port": "/dev/ttyUSB0",
+      "port": "/dev/ttyAMA0",
       "baudrate": 9600,
       "enabled": true
     },
@@ -302,20 +343,21 @@ Le système utilise les capteurs ultrason pour compter automatiquement les passa
 ## Ordre de montage recommandé
 
 1. **Alimentation et masse** : Connectez d'abord toutes les masses (GND) et alimentations
-2. **I2C (MPU9250)** : Connectez le MPU9250 (SDA/SCL)
+2. **I2C (MPU9250 et LCD)** : Connectez le MPU9250 et le LCD (SDA/SCL partagés)
 3. **GPIO simples** : Connectez le DHT22
-4. **Ultrasoniques** : Connectez les deux HC-SR04
-5. **GPS** : Connectez le GPS via USB en dernier
+4. **UART (GPS)** : Connectez le GPS Neo-6M (TX/RX)
+5. **Ultrasoniques** : Connectez les deux HC-SR04 en dernier
 
 ## Vérification du circuit
 
 ### Tests individuels
 
 1. **DHT22** : Testez la lecture de température/humidité
-2. **MPU9250** : Vérifiez la détection I2C avec `i2cdetect`
-3. **HC-SR04 #1** : Testez la mesure de distance
-4. **HC-SR04 #2** : Testez la mesure de distance
-5. **GPS** : Vérifiez la réception de données NMEA
+2. **MPU9250** : Vérifiez la détection I2C avec `i2cdetect -y 1`
+3. **LCD** : Vérifiez la détection I2C avec `i2cdetect -y 1` (adresse 0x27 ou 0x3F)
+4. **HC-SR04 #1** : Testez la mesure de distance
+5. **HC-SR04 #2** : Testez la mesure de distance
+6. **GPS** : Vérifiez la réception de données NMEA sur `/dev/ttyAMA0`
 
 ### Tests de compatibilité
 
@@ -344,8 +386,11 @@ Le système utilise les capteurs ultrason pour compter automatiquement les passa
 - Utilisez `i2cdetect -y 1` pour vérifier la détection
 
 **GPS - Pas de données :**
-- Vérifiez le port série : `ls -l /dev/ttyUSB*`
+- Vérifiez que l'UART est activé : `sudo raspi-config` → Serial Port → Enable
+- Vérifiez le port série : `ls -l /dev/ttyAMA0`
+- Vérifiez les connexions TX/RX (TX GPS → RX Pi, RX GPS → TX Pi)
 - Vérifiez les permissions : `sudo usermod -a -G dialout $USER`
+- Testez manuellement : `sudo cat /dev/ttyAMA0` (devrait afficher des données NMEA)
 - Le GPS nécessite une vue dégagée du ciel pour fonctionner
 - Attendez quelques minutes pour la première acquisition de signal
 

@@ -4,10 +4,9 @@ Projet IoT pour un bus intelligent équipé de plusieurs capteurs sur Raspberry 
 
 ## 📋 Capteurs
 
-- **GPS Neo-6M** : Localisation du bus
+- **GPS Neo-6M** : Localisation du bus (connexion UART GPIO)
 - **DHT22** : Température et humidité
 - **MPU9250** : Accéléromètre, gyroscope et magnétomètre (IMU)
-- **PIR** : Détecteur de mouvement
 - **2x Ultrasonic (HC-SR04)** : Détection des passagers aux portes d'entrée et de sortie
 - **LCD I2C** : Affichage du nombre de passagers en temps réel
 
@@ -127,12 +126,11 @@ Voir le fichier `circuit_ultrasonic.md` pour le schéma complet.
 ### Résumé des connexions :
 
 - **DHT22** : GPIO 4 (Pin 7)
-- **PIR** : GPIO 18 (Pin 12)
 - **Ultrasonic Entrée** : GPIO 23 (Trig), GPIO 24 (Echo)
 - **Ultrasonic Sortie** : GPIO 25 (Trig), GPIO 26 (Echo)
 - **MPU9250** : I2C (GPIO 2/SDA, GPIO 3/SCL)
 - **LCD I2C** : I2C (GPIO 2/SDA, GPIO 3/SCL) - même bus que MPU9250
-- **GPS Neo-6M** : USB (port série `/dev/ttyUSB0` ou `/dev/ttyACM0`)
+- **GPS Neo-6M** : UART GPIO (TX: GPIO 14, RX: GPIO 15) - port `/dev/ttyAMA0`
 
 **Note** : Le LCD et le MPU9250 partagent le même bus I2C (c'est normal, ils ont des adresses différentes).
 
