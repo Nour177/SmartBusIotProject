@@ -113,7 +113,7 @@ Mettez à jour `config/config.json` si nécessaire :
 
 ```json
 "gps": {
-  "port": "/dev/ttyUSB0",  // Changez selon votre port
+  "port": "/dev/ttyAMA0",  // Port UART GPIO par défaut
   "baudrate": 9600,
   "enabled": true
 }

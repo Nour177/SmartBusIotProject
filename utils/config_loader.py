@@ -83,7 +83,7 @@ class ConfigLoader:
         return {
             "sensors": {
                 "gps": {
-                    "port": "/dev/ttyUSB0",
+                    "port": "/dev/ttyAMA0",
                     "baudrate": 9600,
                     "enabled": True
                 },
@@ -94,15 +94,28 @@ class ConfigLoader:
                 "mpu9250": {
                     "enabled": True
                 },
-                "pir": {
-                    "pin": 18,
-                    "enabled": True
-                },
-                "ultrasonic": {
+                "ultrasonic_entry": {
                     "trigger_pin": 23,
                     "echo_pin": 24,
+                    "enabled": True,
+                    "door_type": "entree"
+                },
+                "ultrasonic_exit": {
+                    "trigger_pin": 25,
+                    "echo_pin": 26,
+                    "enabled": True,
+                    "door_type": "sortie"
+                },
+                "lcd": {
+                    "i2c_address": "0x27",
+                    "cols": 16,
+                    "rows": 2,
                     "enabled": True
                 }
+            },
+            "bus": {
+                "max_passengers": 10,
+                "detection_threshold": 3.0
             },
             "data": {
                 "save_interval": 5,
@@ -114,6 +127,7 @@ class ConfigLoader:
                 "file": "logs/smart_bus.log"
             }
         }
+
 
 
 

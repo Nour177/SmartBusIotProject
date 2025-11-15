@@ -1,23 +1,38 @@
-# Dépendances pour le projet Smart Bus IoT
+# Dépendances pour le projet Smart Bus IoT - Raspberry Pi 4
+# Compatible avec Raspberry Pi OS Bookworm et versions ultérieures
 
-# GPS Neo-6M
+# ============================================
+# GPS Neo-6M (UART GPIO)
+# ============================================
 pyserial>=3.5
 pynmea2>=1.19.0
 
-# DHT22 (Température/Humidité) - Bibliothèque moderne
+# ============================================
+# DHT22 (Température/Humidité)
+# ============================================
+# Bibliothèque moderne compatible avec Raspberry Pi OS Bookworm+
 adafruit-circuitpython-dht>=2.4.4
 adafruit-blinka>=8.0.0
 
-# MPU9250 (IMU)
+# ============================================
+# MPU9250 (IMU - Accéléromètre, Gyroscope, Magnétomètre)
+# ============================================
 mpu9250-jmdev>=1.0.0
 
-# GPIO pour Raspberry Pi
+# ============================================
+# GPIO et Hardware Control
+# ============================================
+# GPIO pour Raspberry Pi (capteurs ultrason, etc.)
 RPi.GPIO>=0.7.1
 
-# LCD I2C
+# ============================================
+# LCD I2C (Afficheur)
+# ============================================
 RPLCD>=0.9.0
 
+# ============================================
 # Utilitaires
+# ============================================
 python-dotenv>=1.0.0
 
 
