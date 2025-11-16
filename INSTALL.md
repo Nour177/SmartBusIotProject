@@ -55,16 +55,19 @@ chmod +x setup.sh
 Le script va :
 - ✅ Mettre à jour le système
 - ✅ Installer toutes les dépendances
-- ✅ Activer I2C et Serial
+- ✅ Activer I2C et Serial (UART)
 - ✅ Créer l'environnement virtuel
 - ✅ Installer les packages Python
 - ✅ Créer les dossiers nécessaires
+- ✅ Configurer les permissions
 
 ### Étape 4 : Redémarrer
 
 ```bash
 sudo reboot
 ```
+
+**⚠️ IMPORTANT** : Le redémarrage est nécessaire pour que les interfaces (I2C et UART) soient activées.
 
 ### Étape 5 : Vérifier l'installation
 
@@ -77,8 +80,8 @@ source venv/bin/activate
 # Vérifier I2C (devrait afficher les adresses des périphériques)
 sudo i2cdetect -y 1
 
-# Vérifier le GPS (si connecté)
-ls -l /dev/ttyUSB* /dev/ttyACM*
+# Vérifier le port série GPS
+ls -l /dev/serial0
 
 # Tester le programme
 python3 main.py
@@ -92,11 +95,11 @@ python3 main.py
 sudo i2cdetect -y 1
 ```
 
-Vous devriez voir `27` ou `3f` (ou une autre adresse hexadécimale). Mettez à jour `config/config.json` :
+Vous devriez voir `27` ou `3f` (ou une autre adresse hexadécimale). Si nécessaire, modifiez `config/config.json` :
 
 ```json
 "lcd": {
-  "i2c_address": "0x27",  // Changez selon votre LCD
+  "i2c_address": "0x27",  // Changez selon votre LCD (0x27 ou 0x3F)
   "cols": 16,
   "rows": 2,
   "enabled": true
@@ -105,19 +108,21 @@ Vous devriez voir `27` ou `3f` (ou une autre adresse hexadécimale). Mettez à j
 
 ### 2. Vérifier le port GPS
 
+Le GPS utilise le port série UART GPIO (`/dev/serial0`). Vérifiez que le port existe :
+
 ```bash
-ls -l /dev/ttyUSB* /dev/ttyACM*
+ls -l /dev/serial0
 ```
 
-Mettez à jour `config/config.json` si nécessaire :
-
-```json
-"gps": {
-  "port": "/dev/ttyAMA0",  // Port UART GPIO par défaut
-  "baudrate": 9600,
-  "enabled": true
-}
+Si le port n'existe pas, activez l'UART :
+```bash
+sudo raspi-config
+# Interface Options → Serial Port → Enable
+# Choisissez "No" pour désactiver le shell login
+sudo reboot
 ```
+
+La configuration par défaut dans `config/config.json` utilise déjà `/dev/serial0`.
 
 ### 3. Ajuster les GPIO si nécessaire
 
@@ -154,6 +159,12 @@ cd ~/ProjetPI4
 source venv/bin/activate
 python3 main.py
 ```
+
+Le programme va :
+- Initialiser tous les capteurs
+- Compter automatiquement les passagers (détection à 3cm)
+- Afficher sur le LCD : "Passagers: X/10" ou "BUS PLEIN"
+- Enregistrer les données dans `data/`
 
 ### Mode service (démarrage automatique)
 
@@ -197,21 +208,24 @@ sudo systemctl status smartbus.service
 
 ```bash
 sudo usermod -a -G gpio $USER
+sudo usermod -a -G dialout $USER
 sudo reboot
 ```
 
 ### Problème : LCD non détecté
 
-1. Vérifiez les connexions I2C (SDA/SCL)
-2. Vérifiez l'alimentation du LCD (5V)
-3. Vérifiez l'adresse I2C : `sudo i2cdetect -y 1`
-4. Vérifiez que I2C est activé : `sudo raspi-config`
+1. Vérifiez que I2C est activé : `sudo i2cdetect -y 1`
+2. Vérifiez les connexions I2C (SDA/SCL)
+3. Vérifiez l'alimentation du LCD (5V)
+4. Vérifiez l'adresse I2C dans `config/config.json`
 
 ### Problème : GPS non détecté
 
-1. Vérifiez le port : `ls -l /dev/ttyUSB*`
-2. Vérifiez les permissions : `sudo usermod -a -G dialout $USER`
-3. Vérifiez la connexion USB
+1. Vérifiez que l'UART est activé : `sudo raspi-config` → Serial Port → Enable
+2. Vérifiez le port : `ls -l /dev/serial0`
+3. Vérifiez les permissions : `sudo usermod -a -G dialout $USER`
+4. Vérifiez les connexions (TX GPS → RX Pi GPIO 15, RX GPS → TX Pi GPIO 14)
+5. Testez manuellement : `sudo cat /dev/serial0` (devrait afficher des données NMEA)
 
 ### Problème : Capteurs ultrason ne fonctionnent pas
 
@@ -225,31 +239,16 @@ sudo reboot
 tail -f logs/smart_bus.log
 ```
 
-## 📦 Structure des fichiers après installation
-
-```
-~/ProjetPI4/
-├── venv/                 # Environnement virtuel Python
-├── data/                 # Données enregistrées (créé automatiquement)
-├── logs/                 # Fichiers de log (créé automatiquement)
-├── config/
-│   └── config.json       # Configuration
-├── sensors/              # Modules capteurs
-├── utils/                # Utilitaires
-├── main.py               # Programme principal
-├── requirements.txt      # Dépendances
-└── setup.sh              # Script d'installation
-```
-
 ## ✅ Vérification finale
 
 Avant de lancer le programme, vérifiez que :
 
 - [ ] I2C est activé (`sudo i2cdetect -y 1` fonctionne)
+- [ ] UART est activé (`ls -l /dev/serial0` existe)
 - [ ] Les dépendances sont installées (`pip list` dans venv)
 - [ ] Les dossiers `data/` et `logs/` existent
 - [ ] Le fichier `config/config.json` est configuré
-- [ ] Les capteurs sont correctement connectés
+- [ ] Les capteurs sont correctement connectés selon `circuit_ultrasonic.md`
 - [ ] L'utilisateur est dans les groupes `gpio` et `dialout`
 
 ## 🎉 C'est prêt !
@@ -259,4 +258,3 @@ Votre Smart Bus IoT est maintenant installé et prêt à compter les passagers !
 Pour plus d'informations, consultez :
 - `README.md` : Documentation générale
 - `circuit_ultrasonic.md` : Schéma de connexion détaillé
-

@@ -46,7 +46,7 @@ class SmartBus:
         
         if self.config.get('sensors.gps.enabled', True):
             self.sensors['gps'] = GPSNeo6M(
-                port=self.config.get('sensors.gps.port', '/dev/ttyAMA0'),
+                port=self.config.get('sensors.gps.port', '/dev/serial0'),
                 baudrate=self.config.get('sensors.gps.baudrate', 9600)
             )
             self.sensors['gps'].connect()

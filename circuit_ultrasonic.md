@@ -19,7 +19,6 @@ Ce document décrit le schéma de connexion complet pour connecter tous les capt
 - Résistance pull-up 4.7kΩ ou 10kΩ (optionnel, pour DHT22)
 - Fils de connexion (jumpers)
 - Breadboard (recommandé)
-- Câble USB (pour GPS si connexion USB)
 
 ## Connexions détaillées
 
@@ -81,11 +80,11 @@ Ce document décrit le schéma de connexion complet pour connecter tous les capt
 | RX                | GPIO 14 (Pin 8) - TXD  | Transmission série (Raspberry Pi envoie) |
 
 **Note** : 
-- Le GPS Neo-6M se connecte via UART GPIO (port série `/dev/ttyAMA0`)
+- Le GPS Neo-6M se connecte via UART GPIO (port série `/dev/serial0`)
 - **TX du GPS → RX du Raspberry Pi** (GPIO 15)
 - **RX du GPS → TX du Raspberry Pi** (GPIO 14)
 - L'UART doit être activé dans `raspi-config` (Interface Options → Serial Port)
-- Le port série par défaut est `/dev/ttyAMA0` sur Raspberry Pi 4
+- Le port série par défaut est `/dev/serial0` (lien symbolique vers `/dev/ttyAMA0`) sur Raspberry Pi 4
 
 ## Schéma de connexion complet (ASCII)
 
@@ -253,10 +252,10 @@ sudo raspi-config
 ### 3. Vérifier le port série
 
 ```bash
-ls -l /dev/ttyAMA0
+ls -l /dev/serial0
 ```
 
-Le port par défaut est `/dev/ttyAMA0` sur Raspberry Pi 4.
+Le port par défaut est `/dev/serial0` (lien symbolique vers `/dev/ttyAMA0`) sur Raspberry Pi 4.
 
 ### 4. Permissions
 
@@ -269,7 +268,7 @@ sudo reboot
 
 ```bash
 # Tester la réception de données GPS
-sudo cat /dev/ttyAMA0
+sudo cat /dev/serial0
 # Vous devriez voir des lignes NMEA commençant par $GPRMC, $GPGGA, etc.
 ```
 
@@ -281,7 +280,7 @@ Exemple de configuration complète :
 {
   "sensors": {
     "gps": {
-      "port": "/dev/ttyAMA0",
+      "port": "/dev/serial0",
       "baudrate": 9600,
       "enabled": true
     },
@@ -357,7 +356,7 @@ Le système utilise les capteurs ultrason pour compter automatiquement les passa
 3. **LCD** : Vérifiez la détection I2C avec `i2cdetect -y 1` (adresse 0x27 ou 0x3F)
 4. **HC-SR04 #1** : Testez la mesure de distance
 5. **HC-SR04 #2** : Testez la mesure de distance
-6. **GPS** : Vérifiez la réception de données NMEA sur `/dev/ttyAMA0`
+6. **GPS** : Vérifiez la réception de données NMEA sur `/dev/serial0`
 
 ### Tests de compatibilité
 
@@ -387,10 +386,10 @@ Le système utilise les capteurs ultrason pour compter automatiquement les passa
 
 **GPS - Pas de données :**
 - Vérifiez que l'UART est activé : `sudo raspi-config` → Serial Port → Enable
-- Vérifiez le port série : `ls -l /dev/ttyAMA0`
+- Vérifiez le port série : `ls -l /dev/serial0`
 - Vérifiez les connexions TX/RX (TX GPS → RX Pi, RX GPS → TX Pi)
 - Vérifiez les permissions : `sudo usermod -a -G dialout $USER`
-- Testez manuellement : `sudo cat /dev/ttyAMA0` (devrait afficher des données NMEA)
+- Testez manuellement : `sudo cat /dev/serial0` (devrait afficher des données NMEA)
 - Le GPS nécessite une vue dégagée du ciel pour fonctionner
 - Attendez quelques minutes pour la première acquisition de signal
 

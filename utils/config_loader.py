@@ -83,7 +83,7 @@ class ConfigLoader:
         return {
             "sensors": {
                 "gps": {
-                    "port": "/dev/ttyAMA0",
+                    "port": "/dev/serial0",
                     "baudrate": 9600,
                     "enabled": True
                 },

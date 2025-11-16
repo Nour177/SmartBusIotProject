@@ -19,7 +19,6 @@ ProjetPI4/
 │   ├── gps_neo6m.py     # Module GPS
 │   ├── dht22.py         # Module température/humidité
 │   ├── mpu9250.py       # Module IMU
-│   ├── pir.py           # Module détecteur de mouvement
 │   ├── ultrasonic.py    # Module capteur ultrasonique
 │   └── lcd.py           # Module afficheur LCD
 ├── utils/               # Utilitaires
@@ -116,7 +115,7 @@ sudo reboot
 
 1. Modifiez le fichier `config/config.json` selon votre configuration matérielle
 2. Ajustez les numéros de GPIO si nécessaire
-3. Vérifiez le port série pour le GPS (peut être `/dev/ttyAMA0` ou `/dev/ttyUSB0`)
+3. Vérifiez le port série pour le GPS : `/dev/serial0` (UART GPIO)
 4. Vérifiez l'adresse I2C du LCD : `sudo i2cdetect -y 1` (généralement 0x27 ou 0x3F)
 
 ## 🔌 Connexions GPIO
@@ -130,7 +129,7 @@ Voir le fichier `circuit_ultrasonic.md` pour le schéma complet.
 - **Ultrasonic Sortie** : GPIO 25 (Trig), GPIO 26 (Echo)
 - **MPU9250** : I2C (GPIO 2/SDA, GPIO 3/SCL)
 - **LCD I2C** : I2C (GPIO 2/SDA, GPIO 3/SCL) - même bus que MPU9250
-- **GPS Neo-6M** : UART GPIO (TX: GPIO 14, RX: GPIO 15) - port `/dev/ttyAMA0`
+- **GPS Neo-6M** : UART GPIO (TX: GPIO 14, RX: GPIO 15) - port `/dev/serial0`
 
 **Note** : Le LCD et le MPU9250 partagent le même bus I2C (c'est normal, ils ont des adresses différentes).
 
@@ -193,10 +192,6 @@ Les données sont enregistrées au format JSON avec la structure suivante :
       "gyroscope": {"x": 0.0, "y": 0.0, "z": 0.0},
       "magnetometer": {"x": 0.0, "y": 0.0, "z": 0.0}
     },
-    "pir": {
-      "motion_detected": false,
-      "timestamp": 1704110400.0
-    },
     "ultrasonic_entry": {
       "distance": 25.5,
       "unit": "cm",
@@ -241,7 +236,7 @@ Chaque capteur a son propre module dans `sensors/` avec :
 - Le GPS peut prendre quelques minutes pour obtenir un fix satellite
 - Certains capteurs nécessitent un temps de stabilisation après l'alimentation
 - **DHT22** : Utilise la bibliothèque moderne `adafruit-circuitpython-dht` (compatible avec Raspberry Pi OS Bookworm+)
-  - Si vous avez des problèmes d'installation, consultez `FIX_DHT.md`
+- **GPS** : Utilise le port série UART GPIO `/dev/serial0` (lien symbolique vers `/dev/ttyAMA0`)
 
 ## 🔒 Sécurité
 

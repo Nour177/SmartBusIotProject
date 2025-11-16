@@ -23,7 +23,7 @@ sudo raspi-config nonint do_i2c 0
 # Activation de l'interface série UART (pour GPS Neo-6M via GPIO)
 echo "Activation de l'interface série UART pour GPS..."
 sudo raspi-config nonint do_serial 0
-echo "UART activé - Le GPS utilisera /dev/ttyAMA0"
+echo "UART activé - Le GPS utilisera /dev/serial0"
 
 # Création de l'environnement virtuel
 echo "Création de l'environnement virtuel..."
@@ -51,7 +51,7 @@ echo "=== Installation terminée ==="
 echo ""
 echo "✅ Interfaces activées :"
 echo "   - I2C (pour MPU9250 et LCD)"
-echo "   - UART série (pour GPS Neo-6M sur /dev/ttyAMA0)"
+echo "   - UART série (pour GPS Neo-6M sur /dev/serial0)"
 echo ""
 echo "⚠️  IMPORTANT : Redémarrez votre Raspberry Pi pour que les changements prennent effet :"
 echo "   sudo reboot"
@@ -62,7 +62,7 @@ echo "   2. Vérifiez la configuration dans config/config.json"
 echo "   3. Lancez le programme : python3 main.py"
 echo ""
 echo "📌 Note : Le GPS se connecte via UART GPIO (TX: GPIO 14, RX: GPIO 15)"
-echo "   Port série : /dev/ttyAMA0"
+echo "   Port série : /dev/serial0"
 echo ""
 
 
