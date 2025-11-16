@@ -7,7 +7,7 @@ from typing import Optional, Dict
 import logging
 
 try:
-    import mpu9250_jmdev.mpu9250 as mpu9250
+    import mpu9250_jmdev.mpu_9250 as MMPU9250
     import mpu9250_jmdev.registers as registers
     MPU9250_AVAILABLE = True
 except ImportError:
@@ -29,7 +29,7 @@ class MPU9250:
         
         if MPU9250_AVAILABLE:
             try:
-                self.mpu = mpu9250()
+                self.mpu = MMPU9250()
                 self.mpu.configure()
                 logger.info("MPU9250 initialisé")
             except Exception as e:
