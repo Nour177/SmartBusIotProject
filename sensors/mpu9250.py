@@ -7,10 +7,17 @@ from typing import Optional, Dict
 import logging
 
 try:
-    import mpu9250_jmdev.mpu_9250 as MMPU9250
-    import mpu9250_jmdev.registers as registers
-    MPU9250_AVAILABLE = True
+    from mpu9250_jmdev import registers
+    try:
+        from mpu9250_jmdev.mpu_9250 import MPU9250 as _MPU9250_CLASS
+    except ImportError:
+        # Certains environnements exposent la classe via un sous-module
+        import mpu9250_jmdev.mpu_9250 as _mpu_module  # type: ignore
+        _MPU9250_CLASS = getattr(_mpu_module, "MPU9250", None)
+    MPU9250_AVAILABLE = _MPU9250_CLASS is not None
 except ImportError:
+    _MPU9250_CLASS = None
+    registers = None
     MPU9250_AVAILABLE = False
     logging.warning("mpu9250_jmdev non disponible, utilisation d'un mock")
 
@@ -27,11 +34,25 @@ class MPU9250:
         self.gyroscope = None
         self.magnetometer = None
         
-        if MPU9250_AVAILABLE:
+        if MPU9250_AVAILABLE and callable(_MPU9250_CLASS):
             try:
-                self.mpu = MMPU9250()
+                self.mpu = _MPU9250_CLASS(
+                    address_ak=registers.AK8963_ADDRESS,
+                    address_mpu_master=registers.MPU9050_ADDRESS_68,
+                    bus=1,
+                    gfs=registers.AFS_2G,
+                    afs=registers.AFS_2G,
+                    mfs=registers.MFS_14BITS,
+                    mode=registers.AK8963_MODE_C100HZ
+                )
                 self.mpu.configure()
                 logger.info("MPU9250 initialisé")
+            except TypeError:
+                logger.error(
+                    "La classe MPU9250 n'a pas été trouvée dans mpu9250_jmdev. "
+                    "Vérifiez l'installation de la bibliothèque."
+                )
+                self.mpu = None
             except Exception as e:
                 logger.error(f"Erreur initialisation MPU9250: {e}")
                 self.mpu = None

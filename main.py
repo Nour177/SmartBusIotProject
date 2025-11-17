@@ -211,8 +211,13 @@ class SmartBus:
                 # Collecte des données
                 data = self.collect_data()
                 
-                # Affichage des données
-                logger.info(f"Données collectées: {len(data['sensors'])} capteur(s)")
+                # Affichage des capteurs actifs
+                active_sensors = data['sensors'].keys()
+                if active_sensors:
+                    sensors_str = ', '.join(sorted(active_sensors))
+                else:
+                    sensors_str = 'aucun capteur actif'
+                logger.info(f"Capteurs actifs: {sensors_str}")
                 
                 # Sauvegarde des données
                 save_format = self.config.get('data.format', 'json')
