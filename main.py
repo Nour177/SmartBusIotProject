@@ -112,6 +112,7 @@ class SmartBus:
         # Collecte des données GPS
         if 'gps' in self.sensors:
             gps_data = self.sensors['gps'].read_data()
+            # Toujours inclure les données GPS même sans fix pour voir le statut
             if gps_data:
                 data['sensors']['gps'] = gps_data
         

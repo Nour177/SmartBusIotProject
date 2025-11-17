@@ -36,15 +36,31 @@ class MPU9250:
         
         if MPU9250_AVAILABLE and callable(_MPU9250_CLASS):
             try:
-                self.mpu = _MPU9250_CLASS(
-                    address_ak=registers.AK8963_ADDRESS,
-                    address_mpu_master=registers.MPU9050_ADDRESS_68,
-                    bus=1,
-                    gfs=registers.AFS_2G,
-                    afs=registers.AFS_2G,
-                    mfs=registers.MFS_14BITS,
-                    mode=registers.AK8963_MODE_C100HZ
-                )
+                # Vérifier les attributs disponibles dans registers
+                mfs_value = None
+                if hasattr(registers, 'MFS_14BITS'):
+                    mfs_value = registers.MFS_14BITS
+                elif hasattr(registers, 'MFS_16BITS'):
+                    mfs_value = registers.MFS_16BITS
+                else:
+                    # Valeur par défaut pour 14 bits (0x00)
+                    mfs_value = 0x00
+                    logger.debug("Utilisation de la valeur par défaut pour mfs (0x00)")
+                
+                # Configuration du MPU9250
+                init_params = {
+                    'address_ak': registers.AK8963_ADDRESS,
+                    'address_mpu_master': registers.MPU9050_ADDRESS_68,
+                    'bus': 1,
+                    'gfs': registers.AFS_2G,
+                    'afs': registers.AFS_2G,
+                    'mode': registers.AK8963_MODE_C100HZ
+                }
+                
+                # Ajouter mfs seulement si disponible ou utiliser la valeur par défaut
+                init_params['mfs'] = mfs_value
+                
+                self.mpu = _MPU9250_CLASS(**init_params)
                 self.mpu.configure()
                 logger.info("MPU9250 initialisé")
             except TypeError:
