@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Optional
 
 from sensors import GPSNeo6M, DHT22, MPU9250, Ultrasonic, LCD
-from utils import DataLogger, ConfigLoader
+from utils import DataLogger, ConfigLoader, HTTPClient
 
 # Configuration du logging
 Path('logs').mkdir(exist_ok=True)
@@ -40,6 +40,20 @@ class SmartBus:
         self.data_logger = DataLogger(
             self.config.get('data.directory', 'data')
         )
+        
+        # Initialisation du client HTTP pour envoyer les données au serveur FastAPI
+        self.http_client = None
+        if self.config.get('server.enabled', False):
+            server_url = self.config.get('server.url', 'http://192.168.1.100:8000')
+            timeout = self.config.get('server.timeout', 5)
+            retry_count = self.config.get('server.retry_count', 3)
+            self.http_client = HTTPClient(server_url, timeout=timeout, retry_count=retry_count)
+            
+            # Test de connexion au démarrage
+            if self.http_client.test_connection():
+                logger.info("✅ Connexion au serveur FastAPI réussie")
+            else:
+                logger.warning("⚠️ Impossible de se connecter au serveur FastAPI - Les données seront uniquement sauvegardées localement")
         
         # Initialisation des capteurs
         self.sensors = {}
@@ -156,6 +170,10 @@ class SmartBus:
             'is_full': self.passenger_count >= self.max_passengers
         }
         
+        # Ajouter bus_id si configuré
+        bus_id = self.config.get('server.bus_id', 'Bus1')
+        data['bus_id'] = bus_id
+        
         # Affichage sur LCD si disponible
         if self.lcd:
             self.lcd.display_passenger_count(self.passenger_count, self.max_passengers)
@@ -220,7 +238,7 @@ class SmartBus:
                     sensors_str = 'aucun capteur actif'
                 logger.info(f"Capteurs actifs: {sensors_str}")
                 
-                # Sauvegarde des données
+                # Sauvegarde locale des données
                 save_format = self.config.get('data.format', 'json')
                 if save_format == 'json':
                     self.data_logger.save_json(data)
@@ -229,6 +247,13 @@ class SmartBus:
                 else:
                     self.data_logger.save_json(data)
                     self.data_logger.save_csv(data)
+                
+                # Envoi des données au serveur FastAPI si activé
+                if self.http_client:
+                    if self.http_client.send_data(data):
+                        logger.debug("✅ Données envoyées au serveur FastAPI")
+                    else:
+                        logger.warning("⚠️ Échec de l'envoi des données au serveur")
                 
                 # Attente avant la prochaine collecte
                 time.sleep(interval)
