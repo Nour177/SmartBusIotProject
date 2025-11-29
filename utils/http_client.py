@@ -62,7 +62,7 @@ class HTTPClient:
                     timeout=self.timeout
                 )
                 
-                if response.status_code == 200 or response.status_code == 201:
+                if response.status_code in [200, 201, 202]:  # 202 = Accepted (traitement en arrière-plan)
                     logger.debug(f"Données envoyées avec succès: {response.status_code}")
                     return True
                 else:

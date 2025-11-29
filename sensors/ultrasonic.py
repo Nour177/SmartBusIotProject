@@ -48,22 +48,35 @@ class Ultrasonic:
             time.sleep(0.00001)
             GPIO.output(self.trigger_pin, False)
             
-            # Attente de la réponse
-            timeout = time.time()
-            while GPIO.input(self.echo_pin) == 0:
-                if time.time() - timeout > 0.1:
-                    return None
-                pulse_start = time.time()
+            # Attente de la réponse - Attendre que echo passe à HIGH
+            timeout_start = time.time()
+            pulse_start = None
             
+            # Attendre que l'echo passe à HIGH (début du signal)
+            while GPIO.input(self.echo_pin) == 0:
+                if time.time() - timeout_start > 0.1:  # Timeout après 100ms
+                    logger.warning(f"Ultrasonic timeout - Echo n'a pas démarré (GPIO {self.echo_pin})")
+                    return None
+            pulse_start = time.time()
+            
+            # Attendre que l'echo repasse à LOW (fin du signal)
+            timeout_start = time.time()
             while GPIO.input(self.echo_pin) == 1:
                 pulse_end = time.time()
+                if time.time() - timeout_start > 0.1:  # Timeout après 100ms
+                    logger.warning(f"Ultrasonic timeout - Echo n'a pas fini (GPIO {self.echo_pin})")
+                    return None
             
             # Calcul de la distance
+            if pulse_start is None:
+                return None
+                
             pulse_duration = pulse_end - pulse_start
             distance = (pulse_duration * 34300) / 2  # Vitesse du son = 343 m/s
             
             # Limitation de la plage de mesure (2-400 cm)
             if distance < 2 or distance > 400:
+                logger.debug(f"Ultrasonic distance hors plage: {distance} cm (GPIO {self.echo_pin})")
                 return None
             
             self.distance = round(distance, 2)
@@ -75,7 +88,7 @@ class Ultrasonic:
             }
             
         except Exception as e:
-            logger.error(f"Erreur lecture Ultrasonic: {e}")
+            logger.error(f"Erreur lecture Ultrasonic (GPIO {self.echo_pin}): {e}")
             return None
     
     def get_distance(self) -> Optional[float]:

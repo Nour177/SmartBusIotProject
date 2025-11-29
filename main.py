@@ -251,9 +251,11 @@ class SmartBus:
                 # Envoi des données au serveur FastAPI si activé
                 if self.http_client:
                     if self.http_client.send_data(data):
-                        logger.debug("✅ Données envoyées au serveur FastAPI")
+                        logger.info("✅ Données envoyées au serveur FastAPI")
                     else:
                         logger.warning("⚠️ Échec de l'envoi des données au serveur")
+                else:
+                    logger.warning("⚠️ HTTP Client non initialisé - Les données ne sont pas envoyées au serveur")
                 
                 # Attente avant la prochaine collecte
                 time.sleep(interval)
